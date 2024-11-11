@@ -50,7 +50,7 @@ public class Main {
 
             // Populate JSON object with parsed column-value pairs
             for (int i = 0; i < columns.length; i++) {
-                String column = columns[i].trim();
+                String column = convertToCamelCase(columns[i].trim());
                 String value = values.get(i).trim();
 
                 // Parse value to appropriate JSON type
@@ -112,5 +112,20 @@ public class Main {
 
         // For anything else, assume it's a string for general cases
         return value;
+    }
+
+    private static String convertToCamelCase(String input) {
+        StringBuilder camelCase = new StringBuilder();
+        boolean nextUpper = false;
+
+        for (char c : input.toCharArray()) {
+            if (c == '_') {
+                nextUpper = true;
+            } else {
+                camelCase.append(nextUpper ? Character.toUpperCase(c) : c);
+                nextUpper = false;
+            }
+        }
+        return camelCase.toString();
     }
 }
