@@ -15,7 +15,7 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        String sql = "INSERT INTO test (one, two, three, four, date_column) VALUES (1, 'text', NULL, 42, TO_DATE('03-SEP-24','DD-MON-RR'))";
+        String sql = "INSERT INTO test (one, two, three, FOUR_ONE, date_column) VALUES (1, 'text', NULL, 42, TO_DATE('03-SEP-24','DD-MON-RR'))";
         JSONObject json = convertSqlToJson(sql);
         if (json != null) {
             System.out.println(json.toString(4)); // pretty-print with indentation
@@ -118,12 +118,22 @@ public class Main {
         StringBuilder camelCase = new StringBuilder();
         boolean nextUpper = false;
 
-        for (char c : input.toCharArray()) {
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+
             if (c == '_') {
-                nextUpper = true;
+                nextUpper = true; // Next character should be uppercase
             } else {
-                camelCase.append(nextUpper ? Character.toUpperCase(c) : c);
-                nextUpper = false;
+                if (nextUpper) {
+                    camelCase.append(Character.toUpperCase(c)); // Uppercase after underscore
+                    nextUpper = false;
+                } else {
+                    if (i == 0) {
+                        camelCase.append(Character.toLowerCase(c)); // First letter to lowercase
+                    } else {
+                        camelCase.append(Character.toLowerCase(c)); // Other letters to lowercase
+                    }
+                }
             }
         }
         return camelCase.toString();
