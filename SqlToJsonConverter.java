@@ -5,13 +5,15 @@ import java.util.regex.Pattern;
 
 public class SqlToJsonConverter {
 
+   
+
     public static void main(String[] args) {
-        String sql = "INSERT INTO test (one, two, three, four) VALUES (1, 'text', NULL, TO_DATE('2023-11-10', 'YYYY-MM-DD'))";
+        String sql = "INSERT INTO test (one, two, three, four, date_column) VALUES (1, 'text', NULL, 42, TO_DATE('03-SEP-24','DD-MON-RR'))";
         JSONObject json = convertSqlToJson(sql);
         if (json != null) {
             System.out.println(json.toString(4)); // pretty-print with indentation
         } else {
-            System.out.println("Invalid SQL query.");
+            System.out.println("Invalid SQL query or mismatch between columns and values.");
         }
     }
 
@@ -27,13 +29,27 @@ public class SqlToJsonConverter {
             String[] columns = matcher.group(1).split(",");
             String[] values = matcher.group(2).split(",");
 
+            // Trim whitespace for columns and values
+            for (int i = 0; i < columns.length; i++) {
+                columns[i] = columns[i].trim();
+            }
+            for (int i = 0; i < values.length; i++) {
+                values[i] = values[i].trim();
+            }
+
+            // Check if the number of columns matches the number of values
+            if (columns.length != values.length) {
+                System.out.println("Mismatch between column and value count.");
+                return null;
+            }
+
             // Initialize JSON object to store column-value pairs
             JSONObject json = new JSONObject();
 
             // Populate JSON object with parsed column-value pairs
             for (int i = 0; i < columns.length; i++) {
-                String column = columns[i].trim();
-                String value = values[i].trim();
+                String column = columns[i];
+                String value = values[i];
 
                 // Parse value to appropriate JSON type
                 json.put(column, parseValue(value));
@@ -54,10 +70,10 @@ public class SqlToJsonConverter {
             return Double.parseDouble(value);
         }
 
-        // Check for date and timestamp values, e.g., TO_DATE or TO_TIMESTAMP
+        // Check for Oracle-style date functions like TO_DATE or TO_TIMESTAMP
         if (value.matches("(?i)TO_DATE\\s*\\(\\s*'[^']+'\\s*,\\s*'[^']+'\\s*\\)")
             || value.matches("(?i)TO_TIMESTAMP\\s*\\(\\s*'[^']+'\\s*,\\s*'[^']+'\\s*\\)")) {
-            return value; // Keep as string for simplicity, or parse to date if needed
+            return value; // Keep as string, or convert to date if needed
         }
 
         // Remove surrounding single quotes for strings and handle escaped quotes
@@ -65,7 +81,8 @@ public class SqlToJsonConverter {
             return value.substring(1, value.length() - 1).replace("''", "'");
         }
 
-        // For anything else (assume it's a string for general cases)
+        // For anything else, assume it's a string for general cases
         return value;
     }
+
 }
