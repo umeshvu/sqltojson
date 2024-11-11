@@ -9,12 +9,12 @@ import java.util.regex.Pattern;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        String sql = "INSERT INTO test (one, two, three) VALUES (1, NULL, 'example')";
+        String sql = "INSERT INTO test (one, two, three, four, five) VALUES (1, 'text', NULL, 42, 'extra')";
         JSONObject json = convertSqlToJson(sql);
         if (json != null) {
             System.out.println(json.toString(4)); // pretty-print with indentation
         } else {
-            System.out.println("Invalid SQL query.");
+            System.out.println("Invalid SQL query or mismatch between columns and values.");
         }
     }
 
@@ -30,13 +30,27 @@ public class Main {
             String[] columns = matcher.group(1).split(",");
             String[] values = matcher.group(2).split(",");
 
+            // Trim whitespace for columns and values
+            for (int i = 0; i < columns.length; i++) {
+                columns[i] = columns[i].trim();
+            }
+            for (int i = 0; i < values.length; i++) {
+                values[i] = values[i].trim();
+            }
+
+            // Check if the number of columns matches the number of values
+            if (columns.length != values.length) {
+                System.out.println("Mismatch between column and value count.");
+                return null;
+            }
+
             // Initialize JSON object to store column-value pairs
             JSONObject json = new JSONObject();
 
             // Populate JSON object with parsed column-value pairs
             for (int i = 0; i < columns.length; i++) {
-                String column = columns[i].trim();
-                String value = values[i].trim();
+                String column = columns[i];
+                String value = values[i];
 
                 // Parse value to appropriate JSON type
                 json.put(column, parseValue(value));
